@@ -169,4 +169,115 @@ st.markdown("""
 따라서 린들러 공간은 일반 상대성 이론의 복잡한 블랙홀 시공간을 이해하기 위한 **개념적인 다리 역할**을 한다고 볼 수 있습니다.
 """)
 
+# --- 새로운 린들러 고유 좌표계 도표 생성 함수 ---
+def create_rindler_proper_coordinate_diagram(acceleration):
+    """
+    린들러 고유 좌표계 (tau, xi)에서 시공간 도표를 생성합니다.
+    여기서 빛의 세계선은 지수 함수 형태를 띱니다.
+    Args:
+        acceleration (float): 린들러 관찰자의 고유 가속도 (a).
+    """
+    fig = go.Figure()
+
+    # 축 범위 설정
+    # xi는 0보다 커야 하며, 너무 큰 값은 비현실적이므로 적절한 범위 설정
+    xi_min, xi_max = 0.05, 5.0 # xi = 0은 지평선이므로 0.05부터 시작
+    tau_min, tau_max = -3.0, 3.0 # 고유 시간 tau 범위
+    num_points = 200
+
+    # --- 1. 축 설정 (xi, tau) ---
+    fig.add_shape(type="line", x0=xi_min, y0=0, x1=xi_max, y1=0,
+                  line=dict(color="blue", width=2), name="xi-axis (Proper Space)")
+    fig.add_shape(type="line", x0=0, y0=tau_min, x1=0, y1=tau_max,
+                  line=dict(color="blue", width=2), name="tau-axis (Proper Time)")
+
+    # --- 2. 린들러 지평선 (Horizon at xi=0) ---
+    fig.add_shape(type="line", x0=0, y0=tau_min, x1=0, y1=tau_max,
+                  line=dict(color="red", width=3, dash="dash"), name="Rindler Horizon (xi=0)")
+    fig.add_annotation(x=0.1, y=tau_max - 0.2, text="Rindler Horizon (ξ=0)",
+                       showarrow=False, font=dict(color="red"), xanchor="left")
+
+    # --- 3. 린들러 관찰자의 세계선 (xi = constant) ---
+    # 가속하는 관찰자 자신은 자신의 고유 좌표계에서 정지해 있음
+    # 예를 들어 xi = 1/acceleration 에 해당하는 관찰자의 세계선을 그립니다.
+    if acceleration > 0:
+        observer_xi = 1.0 / acceleration # 예시로 1/a 위치의 관찰자를 그림
+        if observer_xi > xi_min and observer_xi < xi_max: # 축 범위 내에 있을 때만 그리기
+            fig.add_shape(type="line", x0=observer_xi, y0=tau_min, x1=observer_xi, y1=tau_max,
+                          line=dict(color="orange", width=2, dash="dot"), name=f"Rindler Observer (ξ={observer_xi:.2f})")
+            fig.add_annotation(x=observer_xi, y=tau_max - 0.4, text=f"Observer (ξ={observer_xi:.2f})",
+                               showarrow=False, font=dict(color="orange"), xanchor="center")
+
+
+    # --- 4. 빛의 세계선 (Light Cones) - 지수 함수 형태 ---
+    # d(xi)/d(tau) = +/- a*xi
+    # -> xi = xi_0 * exp(a*tau) 또는 xi = xi_0 * exp(-a*tau)
+    
+    tau_values = np.linspace(tau_min, tau_max, num_points)
+
+    # 여러 초기 xi_0 값에서 출발하는 빛의 경로를 그립니다.
+    # 지평선 (xi=0)에 가까운 곳에서 시작하는 빛을 보여주는 것이 중요
+    xi0_starts = np.linspace(0.1, xi_max, 5) # 0.1부터 xi_max까지 5개의 시작점
+
+    for i, xi_start in enumerate(xi0_starts):
+        # 긍정적인 방향으로의 빛 (xi 증가)
+        xi_light_forward = xi_start * np.exp(acceleration * tau_values)
+        # 축 범위 내의 유효한 점들만 플로팅
+        valid_indices_fwd = (xi_light_forward >= xi_min) & (xi_light_forward <= xi_max)
+
+        fig.add_trace(go.Scatter(x=xi_light_forward[valid_indices_fwd], y=tau_values[valid_indices_fwd],
+                                 mode='lines',
+                                 line=dict(color=f'rgba(0,128,0,{0.5 + i*0.1})', width=1.5, dash='solid'),
+                                 name=f'Light Ray (fwd, ξ0={xi_start:.1f})', showlegend=False))
+
+        # 부정적인 방향으로의 빛 (xi 감소)
+        xi_light_backward = xi_start * np.exp(-acceleration * tau_values)
+        # 축 범위 내의 유효한 점들만 플로팅
+        valid_indices_bwd = (xi_light_backward >= xi_min) & (xi_light_backward <= xi_max)
+
+        fig.add_trace(go.Scatter(x=xi_light_backward[valid_indices_bwd], y=tau_values[valid_indices_bwd],
+                                 mode='lines',
+                                 line=dict(color=f'rgba(0,128,0,{0.5 + i*0.1})', width=1.5, dash='solid'),
+                                 name=f'Light Ray (bwd, ξ0={xi_start:.1f})', showlegend=False))
+
+    # --- 5. 레이아웃 설정 ---
+    fig.update_layout(
+        title=f'린들러 고유 좌표계 시공간 도표 (a = {acceleration:.2f})',
+        xaxis_title='ξ (공간 좌표)',
+        yaxis_title='τ (고유 시간)',
+        xaxis_range=[xi_min, xi_max],
+        yaxis_range=[tau_min, tau_max],
+        width=700,
+        height=700,
+        hovermode="closest",
+        showlegend=True,
+        yaxis=dict(scaleanchor="x", scaleratio=1), # 스케일 비율 유지
+    )
+    fig.update_xaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
+    fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
+
+    return fig
+
+
+# --- Streamlit 앱 인터페이스 (기존 코드에 이어서) ---
+# ... (기존 create_rindler_diagram 호출 부분) ...
+
+st.markdown("---") # 구분선 추가
+st.subheader("린들러 고유 좌표계 시공간 도표 (가속 관찰자 시점)")
+
+st.write("""
+이 도표는 균일하게 가속하는 린들러 관찰자 자신의 고유 좌표계 (ξ, τ)에서 시공간이 어떻게 보이는지 시각화합니다.
+""")
+
+# 새로운 도표 생성 및 표시
+rindler_proper_fig = create_rindler_proper_coordinate_diagram(rindler_acceleration)
+st.plotly_chart(rindler_proper_fig, use_container_width=True)
+
+st.markdown("""
+* **빨간색 점선 (린들러 지평선)**: $\xi = 0$에 위치합니다. 린들러 관찰자에게는 이 지평선 너머의 사건들이 영원히 도달할 수 없는 영역입니다.
+* **주황색 점선 (린들러 관찰자의 세계선)**: 린들러 관찰자 자신은 자신의 고유 공간 좌표에 대해 정지해 있으므로, 이 도표에서는 $\xi = \text{상수}$인 수직선으로 나타납니다.
+* **초록색 실선 (빛의 세계선)**: 이 가속하는 좌표계에서 빛은 $\xi = \xi_0 e^{\pm a\tau}$ 형태의 **지수 함수 곡선**을 따라 이동하는 것처럼 보입니다.
+    * 이 곡선들이 $\xi = 0$ (지평선)으로 수렴하는 것을 볼 수 있습니다. 이는 지평선 근처에서는 빛이 린들러 관찰자에게서 멀어지거나(긍정적인 방향) 다가오는(부정적인 방향) 속도가 느려지는 것처럼 보이는 현상을 반영합니다.
+* **가속도 $a$가 커질수록**, 빛의 세계선(초록색 곡선)이 $\xi=0$ 지평선에 더 가파르게 수렴하는 것을 확인할 수 있습니다. 이는 강한 가속이 빛의 궤적을 더 극적으로 휘게 만드는 것처럼 보이는 효과를 나타냅니다.
+""")
 

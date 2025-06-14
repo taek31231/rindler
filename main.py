@@ -150,7 +150,7 @@ rindler_fig = create_rindler_diagram(rindler_acceleration)
 st.plotly_chart(rindler_fig, use_container_width=True)
 
 st.subheader("설명")
-st.markdown(f"""
+st.markdown(r"""
 * **파란색 축**: 중력이 없는 평탄한 민코프스키 시공간의 시간(t) 축과 공간(x) 축입니다.
 * **회색 점선 (린들러 지평선)**: $x = \pm t$ 직선으로, 빛의 세계선과 일치합니다. 이는 린들러 관찰자가 아무리 가속해도 도달하거나 관측할 수 없는 시공간 영역과의 경계입니다. 이는 블랙홀의 사건의 지평선과 유사한 개념으로, **가속으로 인해 발생하는 시야 한계**입니다.
 * **주황색 선 (린들러 관찰자의 세계선)**: 균일한 고유 가속도 $a={rindler_acceleration:.2f}$로 움직이는 관찰자들의 궤적입니다. 이들은 민코프스키 시공간에서 쌍곡선 형태를 띱니다.
@@ -168,3 +168,5 @@ st.markdown("""
 
 따라서 린들러 공간은 일반 상대성 이론의 복잡한 블랙홀 시공간을 이해하기 위한 **개념적인 다리 역할**을 한다고 볼 수 있습니다.
 """)
+
+

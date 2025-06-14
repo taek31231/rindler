@@ -273,7 +273,7 @@ st.write("""
 rindler_proper_fig = create_rindler_proper_coordinate_diagram(rindler_acceleration)
 st.plotly_chart(rindler_proper_fig, use_container_width=True)
 
-st.markdown("""
+st.markdown(r"""
 * **빨간색 점선 (린들러 지평선)**: $\xi = 0$에 위치합니다. 린들러 관찰자에게는 이 지평선 너머의 사건들이 영원히 도달할 수 없는 영역입니다.
 * **주황색 점선 (린들러 관찰자의 세계선)**: 린들러 관찰자 자신은 자신의 고유 공간 좌표에 대해 정지해 있으므로, 이 도표에서는 $\xi = \text{상수}$인 수직선으로 나타납니다.
 * **초록색 실선 (빛의 세계선)**: 이 가속하는 좌표계에서 빛은 $\xi = \xi_0 e^{\pm a\tau}$ 형태의 **지수 함수 곡선**을 따라 이동하는 것처럼 보입니다.

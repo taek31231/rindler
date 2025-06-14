@@ -281,3 +281,80 @@ st.markdown(r"""
 * **가속도 $a$가 커질수록**, 빛의 세계선(초록색 곡선)이 $\xi=0$ 지평선에 더 가파르게 수렴하는 것을 확인할 수 있습니다. 이는 강한 가속이 빛의 궤적을 더 극적으로 휘게 만드는 것처럼 보이는 효과를 나타냅니다.
 """)
 
+# --- 등가 원리 시각화 함수 ---
+def create_equivalence_principle_diagram(acceleration):
+    """
+    등가 원리를 시각화합니다: 가속하는 엘리베이터와 중력장 내의 빛의 경로 비교.
+    Args:
+        acceleration (float): 엘리베이터의 가속도 (a) 또는 중력장 세기 (g).
+    """
+    fig = go.Figure()
+
+    plot_range = 5 # 도표 범위
+    num_points = 100
+
+    # --- 1. 가속하는 엘리베이터 시나리오 (빛이 휘는 것처럼 보임) ---
+    # 엘리베이터 한쪽 벽에서 수평으로 빛을 쏘고, 엘리베이터가 위로 가속하는 상황
+    # 엘리베이터 안의 관찰자에게는 빛이 포물선으로 휘는 것처럼 보임
+    # y = -(1/2) * (a/c^2) * x^2 (근사적으로)
+    # 여기서는 시간 축을 제거하고, 공간 축 x와 가속 방향 축 y를 사용합니다.
+
+    x_values_accel = np.linspace(0, plot_range, num_points)
+    # y = -0.5 * (acceleration / (C**2)) * x^2  (C=1이므로 y = -0.5 * acceleration * x^2)
+    # 가속도가 0일 때 직선, 가속도가 클수록 더 많이 휨
+    y_values_accel = -0.5 * acceleration * x_values_accel**2
+
+    fig.add_trace(go.Scatter(x=x_values_accel, y=y_values_accel, mode='lines',
+                             line=dict(color="orange", width=3),
+                             name=f'Light in Accelerating Elevator (a={acceleration:.2f})'))
+
+    # --- 2. 균일한 중력장 시나리오 (실제로 빛이 휨) ---
+    # 중력 g 아래에서 수평으로 발사된 물체의 궤적과 유사 (빛은 다름, 하지만 비유)
+    # (실제 빛의 중력 렌즈 현상은 더 복잡하지만, 여기서는 개념 설명을 위한 단순화)
+    # 등가 원리를 설명하기 위해, 가속 a와 동일한 크기의 중력장 g를 가정합니다.
+    
+    # 중력장 내에서 빛이 '휘는' 정도를 시각적으로 유사하게 표현
+    y_values_gravity = -0.5 * acceleration * x_values_accel**2 # 동일한 수식을 사용하여 시각적 유사성 강조
+
+    fig.add_trace(go.Scatter(x=x_values_accel, y=y_values_gravity, mode='lines',
+                             line=dict(color="purple", width=3, dash="dot"),
+                             name=f'Light in Gravitational Field (g={acceleration:.2f})')) # g = a 가정
+
+    # --- 3. 레이아웃 설정 ---
+    fig.update_layout(
+        title=f'등가 원리 시각화 (가속도/중력장 세기 = {acceleration:.2f})',
+        xaxis_title='수평 거리',
+        yaxis_title='수직 변위',
+        xaxis_range=[0, plot_range],
+        yaxis_range=[-plot_range, 0.5], # 음수 방향으로 휘는 것을 고려
+        width=700,
+        height=500,
+        hovermode="closest",
+        showlegend=True
+    )
+    fig.update_xaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
+    fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
+
+    return fig
+
+# --- Streamlit 앱 인터페이스 (기존 코드에 이어서) ---
+# ... (기존 create_rindler_proper_coordinate_diagram 호출 부분) ...
+
+st.markdown("---") # 구분선 추가
+st.subheader("등가 원리 시각화: 가속 vs. 중력")
+
+st.write("""
+등가 원리(Equivalence Principle)는 **균일하게 가속하는 기준계**와 **균일한 중력장 내의 정지한 기준계**가 물리적으로 구별될 수 없다는 아인슈타인의 중요한 통찰입니다.
+아래 도표는 가속하는 엘리베이터 안에서 빛이 휘는 것처럼 보이는 현상과, 중력장 내에서 빛이 휘는 현상을 비교하여 이를 시각적으로 보여줍니다.
+(빛의 실제 중력 렌즈 현상은 더 복잡하지만, 여기서는 등가 원리의 개념적 유사성을 강조하기 위한 단순화된 모델입니다.)
+""")
+
+# 등가 원리 도표 생성 및 표시
+equivalence_fig = create_equivalence_principle_diagram(rindler_acceleration) # 기존 슬라이더 값 활용
+st.plotly_chart(equivalence_fig, use_container_width=True)
+
+st.markdown(r"""
+* **주황색 실선**: 위로 가속하는 엘리베이터 안에서 수평으로 발사된 빛의 경로입니다. 엘리베이터 내부의 관찰자에게는 빛이 포물선으로 휘는 것처럼 보입니다.
+* **보라색 점선**: 균일한 중력장 내에서 수평으로 발사된 빛의 경로입니다. 중력에 의해 빛이 휘어지는 실제 현상을 단순화하여 보여줍니다.
+* **관찰**: 두 곡선이 동일한 가속도(또는 중력장 세기) 값에서 **같은 형태**로 휘어지는 것을 확인할 수 있습니다. 이는 가속이 중력과 동일한 효과를 낸다는 등가 원리의 핵심 아이디어입니다.
+""")
